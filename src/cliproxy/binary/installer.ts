@@ -20,7 +20,7 @@ import { extractArchive } from './extractor';
 import { ProgressIndicator } from '../../utils/progress-indicator';
 import { ok } from '../../utils/ui';
 import { BinaryError, NetworkError } from '../../errors/error-types';
-import { assertManagedBinary, getLocalBinaryPath } from './local-binary';
+import { assertManagedBinary, getLocalBinaryPath, getLocalBinaryVersion } from './local-binary';
 
 interface DownloadAndInstallDeps {
   downloadWithRetryFn?: typeof downloadWithRetry;
@@ -212,7 +212,7 @@ export async function getBinaryInfo(
   const source = getLocalBinaryPath() ? 'local' : 'managed';
   return {
     path: binaryPath,
-    version: source === 'local' ? 'unknown' : version,
+    version: source === 'local' ? getLocalBinaryVersion() : version,
     platform,
     checksum,
     source,

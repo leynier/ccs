@@ -57,7 +57,7 @@ Scope: `src/**/*.{ts,tsx,js,jsx,mjs,cjs}`
 
 | Metric | Value |
 |---|---:|
-| typed-error adoption (typed/total throws) | 20.9% (97/463) |
+| typed-error adoption (typed/total throws) | 21.1% (98/464) |
 | typed-error adoption (P4 locked subdomains) | 93.3% (28/30), target 40% |
 | hotpath console.error/warn occurrences | 266 (592 total, 326 CLI-UX exempt) |
 | hotpath console.error/warn files | 82 |

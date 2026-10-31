@@ -40,6 +40,18 @@ export function getLocalBinaryPath(): string | undefined {
   return binaryPath;
 }
 
+/** Optional build metadata; never execute an arbitrary binary just to inspect status. */
+export function getLocalBinaryVersion(): string {
+  const version = process.env.CCS_CLIPROXY_BINARY_VERSION?.trim();
+  if (!version) return 'unknown';
+  if (!/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/.test(version)) {
+    throw new BinaryError(
+      'CCS_CLIPROXY_BINARY_VERSION must be a semantic version, or unset it to report unknown.'
+    );
+  }
+  return version;
+}
+
 /** Reject managed mutations before any network, pin, or process lifecycle work. */
 export function assertManagedBinary(): void {
   if (process.env[LOCAL_BINARY_ENV] !== undefined) {

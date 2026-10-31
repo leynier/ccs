@@ -68,7 +68,10 @@ export function getBinaryStatus(backend?: CLIProxyBackend): BinaryStatusResult {
     source: localBinary ? 'local' : 'managed',
     managedUpdates: !localBinary,
     installed: isCLIProxyInstalled(effectiveBackend),
-    currentVersion: localBinary ? null : getInstalledCliproxyVersion(effectiveBackend),
+    currentVersion:
+      localBinary && getInstalledCliproxyVersion(effectiveBackend) === 'unknown'
+        ? null
+        : getInstalledCliproxyVersion(effectiveBackend),
     pinnedVersion: localBinary ? null : getPinnedVersion(effectiveBackend),
     binaryPath: getCLIProxyPath(effectiveBackend),
     fallbackVersion: backendConfig.fallbackVersion,

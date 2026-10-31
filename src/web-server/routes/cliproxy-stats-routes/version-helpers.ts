@@ -16,7 +16,7 @@ import {
   CLIPROXY_FAULTY_RANGE,
 } from '../../../cliproxy/binary/platform-detector';
 
-import { getLocalBinaryPath } from '../../../cliproxy/binary/local-binary';
+import { getLocalBinaryPath, getLocalBinaryVersion } from '../../../cliproxy/binary/local-binary';
 
 type Backend = ReturnType<typeof getStoredConfiguredBackend>;
 
@@ -96,7 +96,7 @@ export async function resolveCliproxyVersionsPayload(
       latest: '',
       fromCache: false,
       checkedAt: Date.now(),
-      currentVersion: 'unknown',
+      currentVersion: getLocalBinaryVersion(),
       maxStableVersion: CLIPROXY_MAX_STABLE_VERSION,
       faultyRange: CLIPROXY_FAULTY_RANGE,
       source: 'local' as const,
