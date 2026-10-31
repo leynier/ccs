@@ -1,0 +1,56 @@
+# syntax=docker/dockerfile:1.7
+# Build the pinned submodule and CCS source; never install a published CCS package.
+FROM golang:1.26-bookworm AS proxy-build
+WORKDIR /src
+COPY vendor/CLIProxyAPI/go.mod vendor/CLIProxyAPI/go.sum ./
+RUN go mod download
+COPY vendor/CLIProxyAPI/ ./
+ARG CLIPROXY_COMMIT
+RUN test -n "$CLIPROXY_COMMIT" \
+    && CGO_ENABLED=1 GOMAXPROCS=4 go build -p 4 -buildvcs=false \
+      -ldflags="-s -w -X main.Version=source-leynier -X main.Commit=${CLIPROXY_COMMIT} -X main.BuildDate=source" \
+      -o /out/CLIProxyAPI ./cmd/server/
+
+FROM node:22-bookworm-slim AS ccs-build
+COPY --from=oven/bun:1.3.9 /usr/local/bin/bun /usr/local/bin/bun
+WORKDIR /app
+COPY package.json bun.lock bunfig.toml ./
+COPY ui/package.json ui/bun.lock ./ui/
+RUN bun install --frozen-lockfile --ignore-scripts \
+    && (cd ui && bun install --frozen-lockfile --ignore-scripts)
+COPY . .
+RUN bun run build:all \
+    && bun install --frozen-lockfile --production --ignore-scripts
+
+FROM node:22-bookworm-slim AS runtime
+ARG CCS_COMMIT
+ARG CLIPROXY_COMMIT
+LABEL org.opencontainers.image.source="https://github.com/leynier/ccs" \
+      org.opencontainers.image.revision="$CCS_COMMIT" \
+      io.leynier.cliproxy.revision="$CLIPROXY_COMMIT"
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates curl supervisor \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY --from=ccs-build /app/package.json ./
+COPY --from=ccs-build /app/node_modules ./node_modules
+COPY --from=ccs-build /app/dist ./dist
+COPY --from=ccs-build /app/lib ./lib
+COPY --from=ccs-build /app/config ./config
+COPY --from=ccs-build /app/scripts ./scripts
+COPY --from=ccs-build /app/README.md /app/LICENSE ./
+COPY --from=proxy-build /out/CLIProxyAPI /usr/local/bin/CLIProxyAPI
+COPY docker/supervisord.conf /etc/supervisord.conf
+COPY docker/entrypoint-integrated.sh /entrypoint-integrated.sh
+RUN chmod +x /entrypoint-integrated.sh /app/dist/ccs.js \
+    && ln -s /app/dist/ccs.js /usr/local/bin/ccs \
+    && ln -s /app/dist/docker/docker-bootstrap.js /usr/local/bin/ccs-docker-bootstrap \
+    && mkdir -p /var/log/ccs
+ENV NODE_ENV=production \
+    CCS_CLIPROXY_BINARY=/usr/local/bin/CLIProxyAPI \
+    CCS_CLIPROXY_HOST=0.0.0.0 \
+    CCS_CLIPROXY_NO_PLUGIN_ASSET=1
+EXPOSE 3000 8317
+HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=6 \
+  CMD node -e "const http=require('http');const probe=(port)=>new Promise(resolve=>{const req=http.get('http://127.0.0.1:'+port+'/',res=>{res.resume();resolve(res.statusCode<400)});req.on('error',()=>resolve(false));req.setTimeout(4000,()=>{req.destroy();resolve(false)})});Promise.all([probe(3000),probe(8317)]).then(ok=>process.exit(ok.every(Boolean)?0:1))"
+ENTRYPOINT ["/entrypoint-integrated.sh"]

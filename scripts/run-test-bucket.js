@@ -56,6 +56,7 @@ const isolatedTests = new Set([
   'tests/unit/targets/droid-adapter.test.ts',
   'tests/unit/targets/target-registry.test.ts',
   'tests/unit/utils/fetch-proxy-setup.test.ts',
+  'tests/unit/utils/leynier-source-updates.test.ts',
   'tests/unit/web-server/usage/account-attribution.test.ts',
 ]);
 

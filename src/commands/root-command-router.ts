@@ -3,6 +3,7 @@ import { resolveNamedCommand, type NamedCommandRoute } from './named-command-rou
 async function printUpdateCommandHelp(): Promise<void> {
   console.log('');
   console.log('Usage: ccs update [options]');
+  console.log('Leynier variant: source-managed; use the sync and deployment workflow in fork.md.');
   console.log('');
   console.log('Options:');
   console.log('  --force       Force reinstall current version');

@@ -241,6 +241,9 @@ export async function checkForUpdates(
   installMethod: 'npm' | 'direct' = 'direct',
   targetTag: 'latest' | 'dev' = 'latest'
 ): Promise<UpdateResult> {
+  if (currentVersion.includes('+leynier')) {
+    return { status: 'no_update', reason: 'source_managed', current: currentVersion };
+  }
   const cache = readCache();
   const now = Date.now();
 
@@ -388,6 +391,7 @@ export function dismissUpdate(version: string): void {
 export function checkCachedUpdate(
   currentVersion: string
 ): { current: string; latest: string } | null {
+  if (currentVersion.includes('+leynier')) return null;
   const cache = readCache();
 
   // Check if cache has a newer version

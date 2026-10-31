@@ -1,0 +1,4 @@
+[submodule "vendor/CLIProxyAPI"]
+	path = vendor/CLIProxyAPI
+	url = https://github.com/leynier/CLIProxyAPI
+	branch = next

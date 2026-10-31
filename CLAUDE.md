@@ -3,6 +3,10 @@
 Canonical agent instructions for `/Users/kaitran/CloudPersonal/ccs/cli`.
 `AGENTS.md` must stay a symlink to this file.
 
+## Personal Variant Context
+
+On `next`, read [`fork.md`](./fork.md) before changing fork behavior, branch synchronization, the CLIProxyAPI submodule, or the always-on Docker deployment. It records the agreed scope, manual workflow, validation, and rollback. Keep personal integrations on `next` and upstream contributions on independent topic branches.
+
 ## Scope
 
 CCS is a TypeScript/Bun CLI and dashboard for managing Claude Code, Codex,

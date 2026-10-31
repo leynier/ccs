@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { getConfigPath } from '../utils/config-manager';
-import packageJson from '../../package.json';
+import { getVersion } from '../utils/version';
 
 // Import all check functions from modular components
 import {
@@ -47,7 +47,7 @@ export async function runHealthChecks(): Promise<HealthReport> {
   const homedir = os.homedir();
   const ccsDir = getCcsDir();
   const claudeDir = path.join(homedir, '.claude');
-  const version = packageJson.version;
+  const version = getVersion();
 
   const groups: HealthGroup[] = [];
 

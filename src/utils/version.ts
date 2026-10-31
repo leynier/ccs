@@ -17,9 +17,9 @@ export function getVersion(): string {
   try {
     const packageJsonPath = path.join(__dirname, '../../package.json');
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-    cachedVersion = packageJson.version || '0.0.0';
+    cachedVersion = `${packageJson.version || '0.0.0'}+leynier`;
   } catch {
-    cachedVersion = '0.0.0';
+    cachedVersion = '0.0.0+leynier';
   }
 
   return cachedVersion ?? '0.0.0';

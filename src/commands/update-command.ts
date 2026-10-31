@@ -97,8 +97,16 @@ export async function handleUpdateCommand(
   await deps.initUI();
   const { force = false, beta = false } = options;
   const targetTag: TargetTag = beta ? 'dev' : 'latest';
-  const currentInstall = deps.detectCurrentInstall();
   const currentVersion = deps.getVersion();
+  if (currentVersion.includes('+leynier')) {
+    deps.log(
+      info(
+        'This Leynier variant is managed from source. Follow fork.md to sync, rebuild and redeploy.'
+      )
+    );
+    return;
+  }
+  const currentInstall = deps.detectCurrentInstall();
 
   deps.log('');
   deps.log(header('Checking for updates...'));
