@@ -20,6 +20,7 @@ import { extractArchive } from './extractor';
 import { ProgressIndicator } from '../../utils/progress-indicator';
 import { ok } from '../../utils/ui';
 import { BinaryError, NetworkError } from '../../errors/error-types';
+import { assertManagedBinary, getLocalBinaryPath } from './local-binary';
 
 interface DownloadAndInstallDeps {
   downloadWithRetryFn?: typeof downloadWithRetry;
@@ -36,6 +37,7 @@ export async function downloadAndInstall(
   verbose = false,
   deps: DownloadAndInstallDeps = {}
 ): Promise<void> {
+  assertManagedBinary();
   const backend = config.backend ?? DEFAULT_BACKEND;
   const platform = detectPlatform(config.version, backend);
   const downloadUrl = getDownloadUrl(config.version, backend);
@@ -155,6 +157,7 @@ import type { CLIProxyBackend } from '../types';
 
 /** Delete binary (for cleanup or reinstall) */
 export function deleteBinary(binPath: string, verbose = false, backend?: CLIProxyBackend): void {
+  assertManagedBinary();
   const effectiveBackend = backend ?? DEFAULT_BACKEND;
   const binaryPath = path.join(binPath, getExecutableName(effectiveBackend));
   if (fs.existsSync(binaryPath)) {
@@ -177,6 +180,8 @@ export function deleteBinary(binPath: string, verbose = false, backend?: CLIProx
 
 /** Get binary path */
 export function getBinaryPath(binPath: string, backend?: CLIProxyBackend): string {
+  const localBinary = getLocalBinaryPath();
+  if (localBinary) return localBinary;
   const effectiveBackend = backend ?? DEFAULT_BACKEND;
   return path.join(binPath, getExecutableName(effectiveBackend));
 }
@@ -196,6 +201,7 @@ export async function getBinaryInfo(
   version: string;
   platform: ReturnType<typeof detectPlatform>;
   checksum: string;
+  source: 'local' | 'managed';
 } | null> {
   const effectiveBackend = backend ?? DEFAULT_BACKEND;
   const binaryPath = getBinaryPath(binPath, effectiveBackend);
@@ -203,5 +209,12 @@ export async function getBinaryInfo(
 
   const platform = detectPlatform(undefined, effectiveBackend);
   const checksum = await computeChecksum(binaryPath);
-  return { path: binaryPath, version, platform, checksum };
+  const source = getLocalBinaryPath() ? 'local' : 'managed';
+  return {
+    path: binaryPath,
+    version: source === 'local' ? 'unknown' : version,
+    platform,
+    checksum,
+    source,
+  };
 }

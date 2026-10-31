@@ -16,6 +16,8 @@ import {
   CLIPROXY_FAULTY_RANGE,
 } from '../../../cliproxy/binary/platform-detector';
 
+import { getLocalBinaryPath } from '../../../cliproxy/binary/local-binary';
+
 type Backend = ReturnType<typeof getStoredConfiguredBackend>;
 
 function buildUpdateCheckFallback(
@@ -86,6 +88,23 @@ export async function resolveCliproxyVersionsPayload(
   backend: Backend,
   deps: ResolveVersionsDeps = {}
 ) {
+  const localBinary = getLocalBinaryPath();
+  if (localBinary) {
+    return {
+      versions: [],
+      latestStable: '',
+      latest: '',
+      fromCache: false,
+      checkedAt: Date.now(),
+      currentVersion: 'unknown',
+      maxStableVersion: CLIPROXY_MAX_STABLE_VERSION,
+      faultyRange: CLIPROXY_FAULTY_RANGE,
+      source: 'local' as const,
+      managedUpdates: false,
+      binaryPath: localBinary,
+      backend,
+    };
+  }
   const fetchAllVersionsFn = deps.fetchAllVersionsFn ?? fetchAllVersions;
   const getInstalledVersionFn = deps.getInstalledVersionFn ?? getInstalledCliproxyVersion;
   const result = await fetchAllVersionsFn(false, backend).catch(() => null);

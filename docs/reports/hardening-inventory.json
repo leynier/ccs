@@ -1,10 +1,10 @@
 {
   "scope": "src/**/*.{ts,tsx,js,jsx,mjs,cjs}",
   "syncFs": {
-    "totalOccurrences": 2574,
-    "filesAffected": 271,
-    "hotpathOccurrences": 1209,
-    "hotpathFilesAffected": 159,
+    "totalOccurrences": 2600,
+    "filesAffected": 273,
+    "hotpathOccurrences": 1211,
+    "hotpathFilesAffected": 160,
     "topHotpathFiles": [
       {
         "file": "src/utils/browser/mcp-installer.ts",
@@ -304,8 +304,8 @@
     ]
   },
   "legacyShim": {
-    "totalMarkers": 484,
-    "filesAffected": 181,
+    "totalMarkers": 485,
+    "filesAffected": 182,
     "topFiles": [
       {
         "file": "src/auth/profile-detector.ts",
@@ -500,11 +500,11 @@
   },
   "maintainability": {
     "typedErrors": {
-      "totalThrows": 458,
-      "typedThrows": 92,
+      "totalThrows": 463,
+      "typedThrows": 97,
       "plainThrows": 306,
       "otherThrows": 60,
-      "adoptionRatio": 0.2009,
+      "adoptionRatio": 0.2095,
       "topSubdomainsByThrows": [
         {
           "subdomain": "web-server",
@@ -555,16 +555,16 @@
           "plain": 0
         },
         {
+          "subdomain": "cliproxy/binary",
+          "count": 14,
+          "typed": 10,
+          "plain": 4
+        },
+        {
           "subdomain": "cliproxy/accounts",
           "count": 13,
           "typed": 0,
           "plain": 13
-        },
-        {
-          "subdomain": "auth",
-          "count": 12,
-          "typed": 12,
-          "plain": 0
         }
       ]
     },
@@ -582,8 +582,8 @@
     },
     "loggerCoverage": {
       "filesWithCreateLogger": 68,
-      "totalSourceFiles": 769,
-      "coverageRatio": 0.0884,
+      "totalSourceFiles": 770,
+      "coverageRatio": 0.0883,
       "subdomainsWithZeroCreateLogger": [
         "api",
         "bin",
@@ -654,9 +654,9 @@
       ]
     },
     "hotpathConsoleErrors": {
-      "totalOccurrences": 591,
+      "totalOccurrences": 592,
       "exemptOccurrences": 326,
-      "hotpathOccurrences": 265,
+      "hotpathOccurrences": 266,
       "filesAffected": 82,
       "topFiles": [
         {

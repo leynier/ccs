@@ -42,6 +42,7 @@ import type { CLIProxyBackend } from './types';
 import { getVersionListCachePath } from './binary/version-cache';
 import { loadOrCreateUnifiedConfig } from '../config/config-loader-facade';
 import { withInstallLifecycleLock } from './binary/install-lifecycle-lock';
+import { assertManagedBinary, getLocalBinaryPath } from './binary/local-binary';
 
 export const CLIPROXY_DELETED_PLUS_REPO = 'router-for-me/CLIProxyAPIPlus';
 export const CLIPROXY_PLUS_FALLBACK_TRACKING_URL = 'https://github.com/kaitranntt/ccs/issues/1062';
@@ -131,6 +132,7 @@ export function resolveLocalBackend(
   backend: CLIProxyBackend = DEFAULT_BACKEND,
   options: ResolveLocalBackendOptions = {}
 ): CLIProxyBackend {
+  if (getLocalBinaryPath()) return backend;
   if (backend !== 'plus') return backend;
 
   if (isPlusBackendFallbackActive()) {
@@ -223,6 +225,15 @@ export class BinaryManager {
 
   /** Check for updates by comparing installed version with latest release */
   async checkForUpdates(): Promise<UpdateCheckResult> {
+    if (getLocalBinaryPath()) {
+      return {
+        hasUpdate: false,
+        currentVersion: 'unknown',
+        latestVersion: 'unknown',
+        fromCache: false,
+        checkedAt: Date.now(),
+      };
+    }
     return checkForUpdates(
       this.config.binPath,
       this.config.version,
@@ -263,6 +274,12 @@ export async function ensureCLIProxyBinary(
   verbose = false,
   options: EnsureCLIProxyBinaryOptions = {}
 ): Promise<string> {
+  const localBinary = getLocalBinaryPath();
+  if (localBinary) {
+    if (verbose)
+      console.error(`[cliproxy] Using local binary from CCS_CLIPROXY_BINARY: ${localBinary}`);
+    return localBinary;
+  }
   const configuredBackend = options.backend ?? getConfiguredOrDefaultBackend();
   const backend = resolveLocalBackend(configuredBackend, { notifyOnPlus: true });
 
@@ -295,6 +312,7 @@ export async function ensureCLIProxyBinary(
 
 /** Check if CLIProxyAPI binary is installed */
 export function isCLIProxyInstalled(backend?: CLIProxyBackend): boolean {
+  if (getLocalBinaryPath()) return true;
   const configuredBackend = backend ?? getConfiguredOrDefaultBackend();
   const effectiveBackend = resolveLocalBackend(configuredBackend, { notifyOnPlus: true });
   return new BinaryManager({}, effectiveBackend).isBinaryInstalled();
@@ -302,6 +320,8 @@ export function isCLIProxyInstalled(backend?: CLIProxyBackend): boolean {
 
 /** Get CLIProxyAPI binary path (may not exist) */
 export function getCLIProxyPath(backend?: CLIProxyBackend): string {
+  const localBinary = getLocalBinaryPath();
+  if (localBinary) return localBinary;
   const configuredBackend = backend ?? getConfiguredOrDefaultBackend();
   const effectiveBackend = resolveLocalBackend(configuredBackend, { notifyOnPlus: true });
   return new BinaryManager({}, effectiveBackend).getBinaryPath();
@@ -309,6 +329,7 @@ export function getCLIProxyPath(backend?: CLIProxyBackend): string {
 
 /** Get installed CLIProxyAPI version from .version file */
 export function getInstalledCliproxyVersion(backend?: CLIProxyBackend): string {
+  if (getLocalBinaryPath()) return 'unknown';
   const configuredBackend = backend ?? getConfiguredOrDefaultBackend();
   const effectiveBackend = resolveLocalBackend(configuredBackend, { notifyOnPlus: true });
   return readInstalledVersion(
@@ -337,6 +358,7 @@ export async function installCliproxyVersion(
   backend?: CLIProxyBackend,
   deps: InstallCliproxyVersionDeps = {}
 ): Promise<void> {
+  assertManagedBinary();
   const configuredBackend = backend ?? getConfiguredOrDefaultBackend();
   const effectiveBackend = resolveLocalBackend(configuredBackend, { notifyOnPlus: true });
   const manager =
@@ -379,6 +401,7 @@ export async function installCliproxyVersion(
 
 /** Fetch the latest CLIProxyAPI version from GitHub API */
 export async function fetchLatestCliproxyVersion(backend?: CLIProxyBackend): Promise<string> {
+  assertManagedBinary();
   const configuredBackend = backend ?? getConfiguredOrDefaultBackend();
   const effectiveBackend = resolveLocalBackend(configuredBackend, { notifyOnPlus: true });
   const result = await new BinaryManager({}, effectiveBackend).checkForUpdates();
@@ -387,6 +410,9 @@ export async function fetchLatestCliproxyVersion(backend?: CLIProxyBackend): Pro
 
 /** Update check result for API response */
 export interface CliproxyUpdateCheckResult {
+  source?: 'local' | 'managed';
+  managedUpdates?: boolean;
+  binaryPath?: string;
   hasUpdate: boolean;
   currentVersion: string;
   latestVersion: string;
@@ -409,6 +435,22 @@ export async function checkCliproxyUpdate(
   const effectiveBackend = resolveLocalBackend(configuredBackend, { notifyOnPlus: true });
   const result = await new BinaryManager({}, effectiveBackend).checkForUpdates();
 
+  const localBinary = getLocalBinaryPath();
+  if (localBinary) {
+    return {
+      ...result,
+      source: 'local',
+      managedUpdates: false,
+      binaryPath: localBinary,
+      backend: effectiveBackend,
+      backendLabel: 'Local CLIProxy (CCS_CLIPROXY_BINARY)',
+      isStable: false,
+      maxStableVersion: CLIPROXY_MAX_STABLE_VERSION,
+      stabilityMessage:
+        'Local binary version and compatibility are user-managed; CCS update checks are disabled.',
+    };
+  }
+
   // Import isNewerVersion for stability check
   const { isNewerVersion } = await import('./binary/version-checker');
   const isStable = !isNewerVersion(result.currentVersion, CLIPROXY_MAX_STABLE_VERSION);
@@ -420,6 +462,8 @@ export async function checkCliproxyUpdate(
 
   return {
     ...result,
+    source: 'managed',
+    managedUpdates: true,
     backend: effectiveBackend,
     backendLabel,
     isStable,
