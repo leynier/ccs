@@ -43,8 +43,15 @@ Codex receives the route.
 
 ## Local CLIProxy
 
-CCS manages the local binary, generated configuration, auth files, lifecycle,
-and provider-specific launch environment.
+CCS normally manages the local binary, generated configuration, auth files, lifecycle, and provider-specific launch environment.
+
+`CCS_CLIPROXY_BINARY` selects a user-managed CLIProxy-compatible executable instead. The value must be an absolute path to a regular executable file (a symlink to one is supported). Invalid values fail with recovery instructions; CCS never falls back to a download. Export the environment variable before launching CCS, including `ccs config`, so terminal launches, background dashboard startup, and OAuth inherit the same binary selection. A running proxy is reused until explicitly restarted; changing the variable does not replace an already-running process.
+
+The binary resolver in [`local-binary.ts`](../../src/cliproxy/binary/local-binary.ts) bypasses managed downloads, version-pin migration and enforcement, and automatic updates. Explicit installs, updates, and binary deletion are rejected before modifying binaries or stopping the proxy. Existing managed binaries and pins are preserved for use after the override is unset. Binary status reports `source: local`, the executable path, `managedUpdates: false`, and a null version; string-valued version APIs report `unknown` rather than attributing the managed `.version` file to an unrelated executable. Dashboard update checks return no update and version listings are empty without querying managed releases. CCS does not run the executable to infer a version or certify compatibility.
+
+The configured `original` or `plus` backend still controls provider restrictions and generated configuration; choose the backend matching the local executable. CCS continues to own configuration, auth storage, and process lifecycle, while the user owns binary provenance, compatibility, permissions, and updates. The environment override does not select remote proxy mode and is unused when routing entirely through a configured remote proxy.
+
+Public documentation coordination: the environment-variable reference and CLIProxy binary-management guide in the separate `kaitranntt/ccs-docs` repository need a matching update before release. That repository is outside this implementation's authorized scope.
 
 The local backend contract is:
 

@@ -34,17 +34,33 @@ export async function showStatus(verbose: boolean, backend: CLIProxyBackend): Pr
   console.log(
     `  Backend:    ${color(backend, 'info')}${backend === DEFAULT_BACKEND ? dim(' (default)') : ''}`
   );
+  console.log(
+    `  Source:     ${status.source === 'local' ? 'CCS_CLIPROXY_BINARY (user-managed)' : 'CCS-managed'}`
+  );
   if (status.installed) {
     console.log(`  Installed:  ${color('Yes', 'success')}`);
     const versionLabel = status.pinnedVersion
       ? `${color(`v${status.currentVersion}`, 'info')} ${color('(pinned)', 'warning')}`
-      : color(`v${status.currentVersion}`, 'info');
+      : color(
+          status.currentVersion ? `v${status.currentVersion}` : 'Unknown (local binary)',
+          'info'
+        );
     console.log(`  Version:    ${versionLabel}`);
     console.log(`  Binary:     ${dim(status.binaryPath)}`);
   } else {
     console.log(`  Installed:  ${color('No', 'error')}`);
     console.log(`  Fallback:   ${color(`v${status.fallbackVersion}`, 'info')}`);
     console.log(`  ${dim('Run "ccs gemini" or any provider to auto-install')}`);
+  }
+
+  if (status.source === 'local') {
+    console.log('');
+    console.log(dim('Downloads, version pins, and automatic updates are disabled.'));
+    console.log(
+      dim('Update the local binary yourself, or unset CCS_CLIPROXY_BINARY for managed installs.')
+    );
+    console.log('');
+    return;
   }
 
   const latestCheck = await checkLatestVersion(backend);

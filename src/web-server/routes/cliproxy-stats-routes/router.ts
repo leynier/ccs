@@ -18,6 +18,8 @@ import {
 } from '../../../cliproxy/session-tracker';
 import { ensureCliproxyService } from '../../../cliproxy/service-manager';
 import { getStoredConfiguredBackend } from '../../../cliproxy/binary-manager';
+import { assertManagedBinary } from '../../../cliproxy/binary/local-binary';
+import { BinaryError } from '../../../errors/error-types';
 import { isNewerVersion, isVersionFaulty } from '../../../cliproxy/binary/version-checker';
 import {
   CLIPROXY_MAX_STABLE_VERSION,
@@ -233,6 +235,7 @@ router.get('/versions', async (_req: Request, res: Response): Promise<void> => {
 
 router.post('/install', async (req: Request, res: Response): Promise<void> => {
   try {
+    assertManagedBinary();
     const { version, force } = req.body;
 
     if (!version || typeof version !== 'string') {
@@ -275,6 +278,10 @@ router.post('/install', async (req: Request, res: Response): Promise<void> => {
 
     res.json({ version, isFaulty, isExperimental, ...installResult });
   } catch (error) {
+    if (error instanceof BinaryError && process.env.CCS_CLIPROXY_BINARY !== undefined) {
+      res.status(409).json({ success: false, error: error.message });
+      return;
+    }
     logger.error('stats.route.error', 'CLIProxy stats route failed to handle request', {
       err:
         error instanceof Error

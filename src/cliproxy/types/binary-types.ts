@@ -38,6 +38,7 @@ export type ProgressCallback = (progress: DownloadProgress) => void;
 
 /** Binary info after successful download/verification */
 export interface BinaryInfo {
+  source?: 'local' | 'managed';
   path: string;
   version: string;
   platform: PlatformInfo;

@@ -132,6 +132,11 @@ export async function showHelp(): Promise<void> {
   console.log(dim('  Backend: original is the default; plus is opt-in for plus-only providers.'));
   console.log('');
   console.log(subheader('Notes:'));
+  console.log('  CCS_CLIPROXY_BINARY=/absolute/path/to/binary selects a local executable.');
+  console.log('  Inherit this environment in ccs config for dashboard startup and OAuth.');
+  console.log('  Local binaries skip downloads, managed version pins, and automatic updates.');
+  console.log('  --install, --latest, and --update are rejected while the override is set.');
+  console.log('  Update the binary yourself, or unset CCS_CLIPROXY_BINARY for managed installs.');
   console.log(`  Default fallback version: ${color(getFallbackVersion(), 'info')}`);
   console.log(
     `  Releases: ${color(`https://github.com/${BACKEND_CONFIG[DEFAULT_BACKEND].repo}/releases`, 'path')}`

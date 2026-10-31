@@ -9,6 +9,7 @@ import { getProxyStatus as getProxyProcessStatus } from '../../cliproxy/session-
 import { isCliproxyRunning } from '../../cliproxy/services/stats-fetcher';
 import type { CLIProxyBackend } from '../../cliproxy/types';
 import { ProxyError } from '../../errors/error-types';
+import { assertManagedBinary } from '../../cliproxy/binary/local-binary';
 import {
   isRunningUnderSupervisord,
   restartCliproxyViaSupervisord,
@@ -78,6 +79,7 @@ export async function installDashboardCliproxyVersion(
   backend: CLIProxyBackend,
   deps: InstallDashboardCliproxyVersionDeps = defaultDeps
 ): Promise<DashboardCliproxyInstallResult> {
+  assertManagedBinary();
   const effectiveBackend = resolveLocalBackend(backend, { notifyOnPlus: true });
   const backendLabel = effectiveBackend === 'plus' ? 'CLIProxy Plus' : 'CLIProxy';
   const withLifecycleLock = deps.withInstallLifecycleLock ?? withCliproxyInstallLifecycleLock;

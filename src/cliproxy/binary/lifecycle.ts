@@ -16,6 +16,7 @@ import { info, warn } from '../../utils/ui';
 import { isCliproxyRunning } from '../services/stats-fetcher';
 import { resolveLifecyclePort } from '../config/port-manager';
 import { BinaryError } from '../../errors/error-types';
+import { assertManagedBinary, getLocalBinaryPath } from './local-binary';
 import {
   CLIPROXY_MAX_STABLE_VERSION,
   CLIPROXY_FAULTY_RANGE,
@@ -112,6 +113,12 @@ export async function ensureBinary(
   config: BinaryManagerConfig,
   deps: EnsureBinaryDeps = {}
 ): Promise<string> {
+  if (config.replaceExisting) assertManagedBinary();
+  const localBinary = getLocalBinaryPath();
+  if (localBinary) {
+    log(`Using local binary from CCS_CLIPROXY_BINARY: ${localBinary}`, config.verbose);
+    return localBinary;
+  }
   const verbose = config.verbose;
   const backend: CLIProxyBackend = config.backend ?? DEFAULT_BACKEND;
   const binaryPath = getBinaryPath(config.binPath, backend);

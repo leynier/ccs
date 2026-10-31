@@ -24,9 +24,12 @@ import {
 import { BACKEND_CONFIG, DEFAULT_BACKEND } from '../binary/platform-detector';
 import { CLIProxyBackend } from '../types';
 import { loadOrCreateUnifiedConfig } from '../../config/config-loader-facade';
+import { assertManagedBinary, getLocalBinaryPath } from '../binary/local-binary';
 
 /** Binary status result */
 export interface BinaryStatusResult {
+  source: 'local' | 'managed';
+  managedUpdates: boolean;
   installed: boolean;
   currentVersion: string | null;
   pinnedVersion: string | null;
@@ -60,10 +63,13 @@ export function getBinaryStatus(backend?: CLIProxyBackend): BinaryStatusResult {
     backend ?? loadOrCreateUnifiedConfig().cliproxy?.backend ?? DEFAULT_BACKEND;
   const effectiveBackend = resolveLocalBackend(configuredBackend, { notifyOnPlus: true });
   const backendConfig = BACKEND_CONFIG[effectiveBackend];
+  const localBinary = getLocalBinaryPath();
   return {
+    source: localBinary ? 'local' : 'managed',
+    managedUpdates: !localBinary,
     installed: isCLIProxyInstalled(effectiveBackend),
-    currentVersion: getInstalledCliproxyVersion(effectiveBackend),
-    pinnedVersion: getPinnedVersion(effectiveBackend),
+    currentVersion: localBinary ? null : getInstalledCliproxyVersion(effectiveBackend),
+    pinnedVersion: localBinary ? null : getPinnedVersion(effectiveBackend),
     binaryPath: getCLIProxyPath(effectiveBackend),
     fallbackVersion: backendConfig.fallbackVersion,
     backend: effectiveBackend,
@@ -79,6 +85,9 @@ export async function checkLatestVersion(backend?: CLIProxyBackend): Promise<Lat
   const effectiveBackend = resolveLocalBackend(configuredBackend, { notifyOnPlus: true });
 
   try {
+    if (getLocalBinaryPath()) {
+      return { success: true, updateAvailable: false };
+    }
     // Use checkCliproxyUpdate which is backend-aware (uses correct GitHub repo)
     const { checkCliproxyUpdate } = await import('../binary-manager');
     const updateResult = await checkCliproxyUpdate(effectiveBackend);
@@ -128,6 +137,7 @@ export async function installVersion(
   const effectiveBackend = resolveLocalBackend(configuredBackend, { notifyOnPlus: true });
 
   try {
+    assertManagedBinary();
     return await withCliproxyInstallLifecycleLock(effectiveBackend, async () => {
       await installCliproxyVersion(version, verbose, effectiveBackend);
       savePinnedVersion(version, effectiveBackend);
@@ -159,6 +169,7 @@ export async function installLatest(
   const effectiveBackend = resolveLocalBackend(configuredBackend, { notifyOnPlus: true });
 
   try {
+    assertManagedBinary();
     return await withCliproxyInstallLifecycleLock(effectiveBackend, async () => {
       const latestVersion = await fetchLatestCliproxyVersion(effectiveBackend);
       const currentVersion = getInstalledCliproxyVersion(effectiveBackend);
@@ -194,6 +205,7 @@ export async function installLatest(
  * Check if a version is pinned
  */
 export function isPinned(backend?: CLIProxyBackend): boolean {
+  if (getLocalBinaryPath()) return false;
   const configuredBackend =
     backend ?? loadOrCreateUnifiedConfig().cliproxy?.backend ?? DEFAULT_BACKEND;
   const effectiveBackend = resolveLocalBackend(configuredBackend, { notifyOnPlus: true });
@@ -204,6 +216,7 @@ export function isPinned(backend?: CLIProxyBackend): boolean {
  * Get pinned version if any
  */
 export function getPinned(backend?: CLIProxyBackend): string | null {
+  if (getLocalBinaryPath()) return null;
   const configuredBackend =
     backend ?? loadOrCreateUnifiedConfig().cliproxy?.backend ?? DEFAULT_BACKEND;
   const effectiveBackend = resolveLocalBackend(configuredBackend, { notifyOnPlus: true });
