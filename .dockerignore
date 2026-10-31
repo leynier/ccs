@@ -29,6 +29,7 @@ tests
 docs
 *.md
 !README.md
+!fork.md
 !LICENSE
 
 # Logs and OS files

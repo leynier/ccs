@@ -71,10 +71,14 @@ docker buildx create --name ccs-variant-builder --driver docker-container --driv
 # Reuse that builder on subsequent builds; do not create it again.
 ccs_revision=$(git rev-parse HEAD)
 proxy_revision=$(git rev-parse HEAD:vendor/CLIProxyAPI)
+git -C vendor/CLIProxyAPI fetch --tags https://github.com/router-for-me/CLIProxyAPI
+proxy_base=$(git -C vendor/CLIProxyAPI describe --tags --abbrev=0 | sed 's/^v//')
+proxy_version="$proxy_base+leynier.$(git -C vendor/CLIProxyAPI rev-parse --short HEAD)"
 flock /tmp/ccs-variant-heavy.lock systemd-run --user --scope -q -p MemoryMax=8G -p MemorySwapMax=0 timeout 900 \
   docker buildx build --builder ccs-variant-builder --load \
   -f docker/Dockerfile.leynier \
   --build-arg CCS_COMMIT="$ccs_revision" --build-arg CLIPROXY_COMMIT="$proxy_revision" \
+  --build-arg CLIPROXY_VERSION="$proxy_version" \
   -t "ccs-remote:leynier-$ccs_revision" .
 docker buildx stop ccs-variant-builder
 ```
@@ -86,7 +90,7 @@ Before switching, copy the current `ccs_home` volume directly into a dedicated t
 The host service lives in `~/Services/ccs`; systemd `ccs-remote.service` waits for NetBird, starts Compose with `--no-build --force-recreate`, and probes both endpoints. Keep the Compose project `ccs-remote`, service `ccs`, volume names, mount paths, and NetBird bindings unchanged. Preserve the existing `ccs-remote:8.10.0` image for rollback.
 
 1. Back up `compose.yaml` and `Dockerfile` to a timestamped private directory. Record the tested source/proxy commits and immutable image ID in a deployment receipt. Copy credential/config data only between the existing volume and a backup/test volume.
-2. Set Compose's image to the tested commit-specific tag. Point its build context and Dockerfile to the pinned source checkout with both commit arguments, so an explicit later build cannot restore upstream npm code.
+2. Set Compose's image to the tested commit-specific tag. Point its build context and Dockerfile to the pinned source checkout with both commit arguments and the proxy version argument, so an explicit later build cannot restore upstream npm code.
 3. Recreate only the CCS service with `docker compose up -d --no-build --force-recreate --wait --wait-timeout 120`. This is the brief switch; do not run `down -v`.
 4. Verify authenticated API responses, panel authentication, pool settings, systemd state, and access from Linux/macOS/Windows. `make -C ~ ccs-repair` uses sudo to restart the existing systemd unit and recheck both public endpoints.
 5. To roll back, restore the saved Compose file, then run the same `docker compose up -d --no-build --force-recreate --wait --wait-timeout 120`. It uses the retained `ccs-remote:8.10.0` image and persistent home/log volumes. If runtime migration changed stored configuration incompatibly, stop CCS before restoring the saved home volume; never overwrite credentials refreshed since the backup without reviewing them privately.

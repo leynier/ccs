@@ -6,9 +6,11 @@ COPY vendor/CLIProxyAPI/go.mod vendor/CLIProxyAPI/go.sum ./
 RUN go mod download
 COPY vendor/CLIProxyAPI/ ./
 ARG CLIPROXY_COMMIT
+ARG CLIPROXY_VERSION
 RUN test -n "$CLIPROXY_COMMIT" \
+    && test -n "$CLIPROXY_VERSION" \
     && CGO_ENABLED=1 GOMAXPROCS=4 go build -p 4 -buildvcs=false \
-      -ldflags="-s -w -X main.Version=source-leynier -X main.Commit=${CLIPROXY_COMMIT} -X main.BuildDate=source" \
+      -ldflags="-s -w -X main.Version=${CLIPROXY_VERSION} -X main.Commit=${CLIPROXY_COMMIT} -X main.BuildDate=source" \
       -o /out/CLIProxyAPI ./cmd/server/
 
 FROM node:22-bookworm-slim AS ccs-build
@@ -38,7 +40,7 @@ COPY --from=ccs-build /app/dist ./dist
 COPY --from=ccs-build /app/lib ./lib
 COPY --from=ccs-build /app/config ./config
 COPY --from=ccs-build /app/scripts ./scripts
-COPY --from=ccs-build /app/README.md /app/LICENSE ./
+COPY --from=ccs-build /app/README.md /app/LICENSE /app/fork.md ./
 COPY --from=proxy-build /out/CLIProxyAPI /usr/local/bin/CLIProxyAPI
 COPY docker/supervisord.conf /etc/supervisord.conf
 COPY docker/entrypoint-integrated.sh /entrypoint-integrated.sh

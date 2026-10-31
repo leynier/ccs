@@ -5,15 +5,13 @@ async function printUpdateCommandHelp(): Promise<void> {
   console.log('Usage: ccs update [options]');
   console.log('Leynier variant: source-managed; use the sync and deployment workflow in fork.md.');
   console.log('');
-  console.log('Options:');
-  console.log('  --force       Force reinstall current version');
-  console.log('  --beta, --dev Install from dev channel (unstable)');
+  console.log('Options (accepted for compatibility; package installation is disabled):');
+  console.log('  --force       Show source-managed update guidance');
+  console.log('  --beta, --dev Show source-managed update guidance');
   console.log('  --help, -h    Show this help message');
   console.log('');
   console.log('Examples:');
-  console.log('  ccs update           Update to latest stable');
-  console.log('  ccs update --force   Force reinstall');
-  console.log('  ccs update --beta    Install dev channel');
+  console.log('  ccs update           Show source-managed update guidance');
   console.log('');
 }
 
