@@ -27,6 +27,7 @@ RUN bun run build:all \
 FROM node:22-bookworm-slim AS runtime
 ARG CCS_COMMIT
 ARG CLIPROXY_COMMIT
+ARG CLIPROXY_VERSION
 LABEL org.opencontainers.image.source="https://github.com/leynier/ccs" \
       org.opencontainers.image.revision="$CCS_COMMIT" \
       io.leynier.cliproxy.revision="$CLIPROXY_COMMIT"
@@ -50,6 +51,7 @@ RUN chmod +x /entrypoint-integrated.sh /app/dist/ccs.js \
     && mkdir -p /var/log/ccs
 ENV NODE_ENV=production \
     CCS_CLIPROXY_BINARY=/usr/local/bin/CLIProxyAPI \
+    CCS_CLIPROXY_BINARY_VERSION=${CLIPROXY_VERSION} \
     CCS_CLIPROXY_HOST=0.0.0.0 \
     CCS_CLIPROXY_NO_PLUGIN_ASSET=1
 EXPOSE 3000 8317

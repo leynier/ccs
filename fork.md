@@ -62,7 +62,7 @@ git commit -m "chore(proxy): update pinned submodule"
 
 ## Build and Stage
 
-`getVersion()` adds `+leynier` to the upstream version without changing release versions or tags. Source-managed builds suppress CCS update checks and refuse npm replacement, including `ccs update --force` and `--beta`. To update, sync source and rebuild. The Dockerfile compiles the submodule and uses `CCS_CLIPROXY_BINARY=/usr/local/bin/CLIProxyAPI`; managed download, pinning and auto-update do not own this binary.
+`getVersion()` adds `+leynier` to the upstream version without changing release versions or tags. Source-managed builds suppress CCS update checks and refuse npm replacement, including `ccs update --force` and `--beta`. To update, sync source and rebuild. The Dockerfile compiles the submodule and uses `CCS_CLIPROXY_BINARY=/usr/local/bin/CLIProxyAPI`; managed download, pinning and auto-update do not own this binary. `CCS_CLIPROXY_BINARY_VERSION` carries the matching build version for status and compatibility gates; an arbitrary local binary without this assertion conservatively reports an unknown version.
 
 Build from a clean, committed `next` worktree with its submodule initialized. Heavy commands run sequentially under an 8 GiB limit and 15-minute timeout. Because Docker builds execute in a daemon, also use a dedicated memory-limited builder:
 

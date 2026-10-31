@@ -1,7 +1,11 @@
 import { randomBytes } from 'crypto';
 import { spawn } from 'child_process';
 import * as fs from 'fs';
-import { ensureCLIProxyBinary, getInstalledCliproxyVersion } from '../cliproxy/binary-manager';
+import {
+  ensureCLIProxyBinary,
+  getInstalledCliproxyVersion,
+  getConfiguredBackend,
+} from '../cliproxy/binary-manager';
 import {
   configExists,
   configNeedsRegeneration,
@@ -144,7 +148,12 @@ async function runCliproxy(): Promise<number> {
       if (!child.pid) return;
       try {
         const version = getInstalledCliproxyVersion();
-        sessionId = registerSession(CLIPROXY_DEFAULT_PORT, child.pid, version, 'plus');
+        sessionId = registerSession(
+          CLIPROXY_DEFAULT_PORT,
+          child.pid,
+          version,
+          getConfiguredBackend()
+        );
       } catch (err) {
         console.error(
           `[cliproxy] Failed to register session lock: ${err instanceof Error ? err.message : String(err)}`
