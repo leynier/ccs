@@ -2,6 +2,12 @@
 
 This repository tracks [upstream CCS](https://github.com/kaitranntt/ccs). Only the always-on Docker server runs this variant; the Linux global CLI and the macOS/Windows installations remain upstream installations. There is no npm publishing, registry publishing, scheduled sync, or upstream PR automation for this variant.
 
+## Agreed Context
+
+The server previously installed upstream CCS 8.10.0 on top of a published integrated image. The goal is a personal variant that can evolve while continuing to contribute upstream, without replacing the global CLI or client installations. `next` began with the same-email organization-account fix from upstream PR [#1783](https://github.com/kaitranntt/ccs/pull/1783), then merged upstream `dev`. That PR branch has its own review lifecycle and must not receive variant commits. CLIProxyAPI is built from its own fork so proxy changes can also be developed independently.
+
+The service remains private over NetBird: dashboard port 3000, API host port 9317 mapped to container port 8317. Existing clients use their separate `~/ccs-remote/settings.json` through T3 Config Directory. No client reconfiguration is needed when the server image changes.
+
 ## Branches and Contributions
 
 - `main` mirrors `upstream/main`, fast-forward only.
