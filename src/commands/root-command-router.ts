@@ -12,6 +12,7 @@ async function printUpdateCommandHelp(): Promise<void> {
   console.log('');
   console.log('Examples:');
   console.log('  ccs update           Show source-managed update guidance');
+  console.log('  ccs update --beta    Show source-managed update guidance');
   console.log('');
 }
 
