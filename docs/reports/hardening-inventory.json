@@ -500,11 +500,11 @@
   },
   "maintainability": {
     "typedErrors": {
-      "totalThrows": 463,
-      "typedThrows": 97,
+      "totalThrows": 464,
+      "typedThrows": 98,
       "plainThrows": 306,
       "otherThrows": 60,
-      "adoptionRatio": 0.2095,
+      "adoptionRatio": 0.2112,
       "topSubdomainsByThrows": [
         {
           "subdomain": "web-server",
@@ -556,8 +556,8 @@
         },
         {
           "subdomain": "cliproxy/binary",
-          "count": 14,
-          "typed": 10,
+          "count": 15,
+          "typed": 11,
           "plain": 4
         },
         {

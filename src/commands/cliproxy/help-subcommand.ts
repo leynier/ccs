@@ -133,6 +133,7 @@ export async function showHelp(): Promise<void> {
   console.log('');
   console.log(subheader('Notes:'));
   console.log('  CCS_CLIPROXY_BINARY=/absolute/path/to/binary selects a local executable.');
+  console.log('  CCS_CLIPROXY_BINARY_VERSION optionally declares the built semantic version.');
   console.log('  Inherit this environment in ccs config for dashboard startup and OAuth.');
   console.log('  Local binaries skip downloads, managed version pins, and automatic updates.');
   console.log('  --install, --latest, and --update are rejected while the override is set.');

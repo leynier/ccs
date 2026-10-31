@@ -42,7 +42,11 @@ import type { CLIProxyBackend } from './types';
 import { getVersionListCachePath } from './binary/version-cache';
 import { loadOrCreateUnifiedConfig } from '../config/config-loader-facade';
 import { withInstallLifecycleLock } from './binary/install-lifecycle-lock';
-import { assertManagedBinary, getLocalBinaryPath } from './binary/local-binary';
+import {
+  assertManagedBinary,
+  getLocalBinaryPath,
+  getLocalBinaryVersion,
+} from './binary/local-binary';
 
 export const CLIPROXY_DELETED_PLUS_REPO = 'router-for-me/CLIProxyAPIPlus';
 export const CLIPROXY_PLUS_FALLBACK_TRACKING_URL = 'https://github.com/kaitranntt/ccs/issues/1062';
@@ -228,8 +232,8 @@ export class BinaryManager {
     if (getLocalBinaryPath()) {
       return {
         hasUpdate: false,
-        currentVersion: 'unknown',
-        latestVersion: 'unknown',
+        currentVersion: getLocalBinaryVersion(),
+        latestVersion: getLocalBinaryVersion(),
         fromCache: false,
         checkedAt: Date.now(),
       };
@@ -329,7 +333,7 @@ export function getCLIProxyPath(backend?: CLIProxyBackend): string {
 
 /** Get installed CLIProxyAPI version from .version file */
 export function getInstalledCliproxyVersion(backend?: CLIProxyBackend): string {
-  if (getLocalBinaryPath()) return 'unknown';
+  if (getLocalBinaryPath()) return getLocalBinaryVersion();
   const configuredBackend = backend ?? getConfiguredOrDefaultBackend();
   const effectiveBackend = resolveLocalBackend(configuredBackend, { notifyOnPlus: true });
   return readInstalledVersion(

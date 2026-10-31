@@ -34,6 +34,7 @@ describe('CCS_CLIPROXY_BINARY', () => {
     process.env.CCS_HOME = testHome;
     delete process.env.CCS_DIR;
     delete process.env.CCS_CONFIG;
+    delete process.env.CCS_CLIPROXY_BINARY_VERSION;
     binaryPath = path.join(testHome, 'custom proxy');
     fs.writeFileSync(binaryPath, '#!/bin/sh\nexit 0\n', { mode: 0o755 });
     process.env.CCS_CLIPROXY_BINARY = binaryPath;
@@ -176,6 +177,24 @@ describe('CCS_CLIPROXY_BINARY', () => {
     });
     expect(fetchVersions).not.toHaveBeenCalled();
     expect(network).not.toHaveBeenCalled();
+  });
+
+  it('reports explicitly supplied local version consistently without managed metadata', async () => {
+    process.env.CCS_CLIPROXY_BINARY_VERSION = '8.0.48+custom.build';
+    expect(getInstalledCliproxyVersion('original')).toBe('8.0.48+custom.build');
+    expect((await new BinaryManager({}, 'original').getBinaryInfo()).version).toBe(
+      '8.0.48+custom.build'
+    );
+    expect(getBinaryStatus('original').currentVersion).toBe('8.0.48+custom.build');
+    expect((await checkCliproxyUpdate('original')).currentVersion).toBe('8.0.48+custom.build');
+    expect((await resolveCliproxyVersionsPayload('original')).currentVersion).toBe(
+      '8.0.48+custom.build'
+    );
+  });
+
+  it('rejects malformed asserted local versions', () => {
+    process.env.CCS_CLIPROXY_BINARY_VERSION = 'not-a-version';
+    expect(() => getInstalledCliproxyVersion('original')).toThrow('must be a semantic version');
   });
 
   it('rejects managed mutations before network, stopping services, or changing binaries and pins', async () => {
