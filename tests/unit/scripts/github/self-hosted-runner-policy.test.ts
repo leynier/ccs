@@ -23,6 +23,9 @@ function workflowsDir() {
     'label-pending-release.yml': 'ubuntu-latest — PR label reconciliation',
     'publish-npm.yml.deprecated': 'ubuntu-latest — deprecated workflow',
     'ai-review.yml': 'ubuntu-latest — PR-Agent review lane on GitHub-hosted runner',
+    'docker-release.yml': 'ubuntu-latest — Docker release pipeline on GitHub-hosted runner',
+    'promote-release.yml': 'ubuntu-latest — Docker tag promotion on GitHub-hosted runner',
+    'smoke-test-compose-url.yml': 'ubuntu-latest — compose url smoke test on GitHub-hosted runner',
   };
 
 describe('self-hosted runner policy', () => {
