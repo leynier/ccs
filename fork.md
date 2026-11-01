@@ -44,6 +44,12 @@ git -C ../ccs-example push -u origin feat/example
 
 The local-binary feature is maintained on `feat/local-cliproxy-binary` and merged into `next`. Before proposing it upstream, coordinate its matching public documentation change in `kaitranntt/ccs-docs`; no upstream PR is opened by this setup.
 
+## Claude Account Labels and Quotas
+
+`next` also integrates the independent upstream contributions [saved account nicknames (#1793)](https://github.com/kaitranntt/ccs/pull/1793) and [optional scoped Claude quotas (#1794)](https://github.com/kaitranntt/ccs/pull/1794). Nicknames are display labels; account IDs, token associations and persisted names do not migrate. Privacy mode masks nicknames while retaining account disambiguation.
+
+General 5-hour, general weekly and model-specific weekly windows are independently optional. Only general account windows determine CCS account health, rotation and automatic pause. Model-only results retain their visible rows with unknown general capacity; CLIProxyAPI continues handling model-specific request rejections. The [quota contract](./docs/claude-scoped-quotas.md) describes normalization, nullable resets, explicit units and cooldown-preserving cache upgrades. These changes require no credential, account or volume deletion.
+
 ## Update the Proxy Submodule
 
 Use a separate worktree for proxy code changes; do not edit the main CLIProxyAPI checkout or the submodule's mirror branch.
@@ -87,12 +93,10 @@ Before switching, copy the current `ccs_home` volume directly into a dedicated t
 
 ## Deploy and Roll Back
 
-The host service lives in `~/Services/ccs`; systemd `ccs-remote.service` waits for NetBird, starts Compose with `--no-build --force-recreate`, and probes both endpoints. Keep the Compose project `ccs-remote`, service `ccs`, volume names, mount paths, and NetBird bindings unchanged. Preserve the existing `ccs-remote:8.10.0` image for rollback.
+The private [ccs-service repository](https://github.com/leynier/ccs-service) owns deployment configuration on `main` at `~/Projects/personal/ccs-service`. `~/Services/ccs` remains its compatibility symlink. Its `ccs` submodule pins this fork, while `compose.yaml` records the matching CCS commit, proxy commit/version and image tag. Application changes are integrated here first, then selected through a service gitlink update; a source push does not deploy.
 
-1. Back up `compose.yaml` and `Dockerfile` to a timestamped private directory. Record the tested source/proxy commits and immutable image ID in a deployment receipt. Copy credential/config data only between the existing volume and a backup/test volume.
-2. Set Compose's image to the tested commit-specific tag. Point its build context and Dockerfile to the pinned source checkout with both commit arguments and the proxy version argument, so an explicit later build cannot restore upstream npm code.
-3. Recreate only the CCS service with `docker compose up -d --no-build --force-recreate --wait --wait-timeout 120`. This is the brief switch; do not run `down -v`.
-4. Verify authenticated API responses, panel authentication, pool settings, systemd state, and access from Linux/macOS/Windows. `make -C ~ ccs-repair` uses sudo to restart the existing systemd unit and recheck both public endpoints.
-5. To roll back, restore the saved Compose file, then run the same `docker compose up -d --no-build --force-recreate --wait --wait-timeout 120`. It uses the retained `ccs-remote:8.10.0` image and persistent home/log volumes. If runtime migration changed stored configuration incompatibly, stop CCS before restoring the saved home volume; never overwrite credentials refreshed since the backup without reviewing them privately.
+Follow service [case 11](https://github.com/leynier/ccs-service/blob/main/docs/workflows/11-deploy-pinned-variant.md) for staging and an authorized switch, and [case 12](https://github.com/leynier/ccs-service/blob/main/docs/workflows/12-rollback-deployment.md) for recovery. Keep project/service names, existing volumes, mount paths and NetBird bindings unchanged. The home `ccs-repair` target delegates to the service repository's `make repair`, which owns the systemd restart and endpoint checks.
 
-Do not delete branches, images or volumes without approval. Keep upstream PR #1783's branch untouched. Pool configuration checks do not prove real quota-triggered account rotation; observe that naturally rather than exhausting credentials.
+Retain the actual currently deployed immutable image and configuration before switching. Test offline first; copied OAuth credentials must have only one network-connected writer during live verification. Stop both instances before promoting the candidate's latest OAuth state. Rollback uses the retained image and a forward recovery commit while preserving refreshed credentials; never restore old authentication over newer state. Historical 8.10.0 images and migration scripts are not current rollback assets.
+
+Do not delete branches, images, volumes or backups without approval. Keep upstream PR #1783's branch untouched. Pool configuration checks do not prove real quota-triggered account rotation; observe that naturally rather than exhausting credentials.
