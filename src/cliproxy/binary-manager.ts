@@ -447,7 +447,7 @@ export async function checkCliproxyUpdate(
       managedUpdates: false,
       binaryPath: localBinary,
       backend: effectiveBackend,
-      backendLabel: 'Local CLIProxy (CCS_CLIPROXY_BINARY)',
+      backendLabel: 'Local CLIProxy',
       isStable: false,
       maxStableVersion: CLIPROXY_MAX_STABLE_VERSION,
       stabilityMessage:
