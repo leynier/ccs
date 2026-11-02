@@ -1,10 +1,10 @@
 {
   "scope": "src/**/*.{ts,tsx,js,jsx,mjs,cjs}",
   "syncFs": {
-    "totalOccurrences": 2621,
-    "filesAffected": 274,
-    "hotpathOccurrences": 1211,
-    "hotpathFilesAffected": 160,
+    "totalOccurrences": 2662,
+    "filesAffected": 280,
+    "hotpathOccurrences": 1224,
+    "hotpathFilesAffected": 164,
     "topHotpathFiles": [
       {
         "file": "src/utils/browser/mcp-installer.ts",
@@ -304,8 +304,8 @@
     ]
   },
   "legacyShim": {
-    "totalMarkers": 490,
-    "filesAffected": 185,
+    "totalMarkers": 495,
+    "filesAffected": 186,
     "topFiles": [
       {
         "file": "src/auth/profile-detector.ts",
@@ -500,17 +500,23 @@
   },
   "maintainability": {
     "typedErrors": {
-      "totalThrows": 464,
-      "typedThrows": 98,
+      "totalThrows": 490,
+      "typedThrows": 124,
       "plainThrows": 306,
       "otherThrows": 60,
-      "adoptionRatio": 0.2112,
+      "adoptionRatio": 0.2531,
       "topSubdomainsByThrows": [
         {
           "subdomain": "web-server",
           "count": 105,
           "typed": 18,
           "plain": 45
+        },
+        {
+          "subdomain": "cliproxy/accounts",
+          "count": 39,
+          "typed": 26,
+          "plain": 13
         },
         {
           "subdomain": "proxy",
@@ -559,12 +565,6 @@
           "count": 15,
           "typed": 11,
           "plain": 4
-        },
-        {
-          "subdomain": "cliproxy/accounts",
-          "count": 13,
-          "typed": 0,
-          "plain": 13
         }
       ]
     },
@@ -582,8 +582,8 @@
     },
     "loggerCoverage": {
       "filesWithCreateLogger": 68,
-      "totalSourceFiles": 770,
-      "coverageRatio": 0.0883,
+      "totalSourceFiles": 778,
+      "coverageRatio": 0.0874,
       "subdomainsWithZeroCreateLogger": [
         "api",
         "bin",
@@ -647,9 +647,9 @@
           "withLogger": 3
         },
         {
-          "subdomain": "auth",
-          "count": 20,
-          "withLogger": 1
+          "subdomain": "cliproxy/accounts",
+          "count": 21,
+          "withLogger": 0
         }
       ]
     },
@@ -722,8 +722,8 @@
       ]
     },
     "largeFiles": {
-      "countOver400": 94,
-      "countOver600": 43,
+      "countOver400": 96,
+      "countOver600": 44,
       "topOver400": [
         {
           "file": "src/web-server/usage/native-quota-collector.ts",
@@ -739,7 +739,7 @@
         },
         {
           "file": "src/cliproxy/config/generator.ts",
-          "loc": 1283
+          "loc": 1289
         },
         {
           "file": "src/web-server/model-pricing.ts",
