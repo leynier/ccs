@@ -1,9 +1,9 @@
 {
   "scope": "src/**/*.{ts,tsx,js,jsx,mjs,cjs}",
   "syncFs": {
-    "totalOccurrences": 2662,
-    "filesAffected": 280,
-    "hotpathOccurrences": 1224,
+    "totalOccurrences": 2693,
+    "filesAffected": 284,
+    "hotpathOccurrences": 1222,
     "hotpathFilesAffected": 164,
     "topHotpathFiles": [
       {
@@ -501,10 +501,10 @@
   "maintainability": {
     "typedErrors": {
       "totalThrows": 490,
-      "typedThrows": 124,
-      "plainThrows": 306,
+      "typedThrows": 126,
+      "plainThrows": 304,
       "otherThrows": 60,
-      "adoptionRatio": 0.2531,
+      "adoptionRatio": 0.2571,
       "topSubdomainsByThrows": [
         {
           "subdomain": "web-server",
@@ -515,8 +515,8 @@
         {
           "subdomain": "cliproxy/accounts",
           "count": 39,
-          "typed": 26,
-          "plain": 13
+          "typed": 28,
+          "plain": 11
         },
         {
           "subdomain": "proxy",
@@ -582,8 +582,8 @@
     },
     "loggerCoverage": {
       "filesWithCreateLogger": 68,
-      "totalSourceFiles": 778,
-      "coverageRatio": 0.0874,
+      "totalSourceFiles": 781,
+      "coverageRatio": 0.0871,
       "subdomainsWithZeroCreateLogger": [
         "api",
         "bin",
@@ -613,7 +613,7 @@
         },
         {
           "subdomain": "utils",
-          "count": 91,
+          "count": 92,
           "withLogger": 2
         },
         {
@@ -739,7 +739,7 @@
         },
         {
           "file": "src/cliproxy/config/generator.ts",
-          "loc": 1289
+          "loc": 1295
         },
         {
           "file": "src/web-server/model-pricing.ts",
@@ -771,7 +771,7 @@
         },
         {
           "file": "src/cliproxy/proxy/tool-sanitization-proxy.ts",
-          "loc": 948
+          "loc": 988
         },
         {
           "file": "src/cliproxy/quota/quota-manager.ts",
@@ -782,8 +782,8 @@
           "loc": 940
         },
         {
-          "file": "src/glmt/glmt-proxy.ts",
-          "loc": 925
+          "file": "src/cliproxy/accounts/registry.ts",
+          "loc": 927
         }
       ]
     }

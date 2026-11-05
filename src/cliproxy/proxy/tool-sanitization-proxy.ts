@@ -23,7 +23,10 @@ import {
   stripCodexEffortSuffix,
 } from '../ai-providers/model-id-normalizer';
 import { getModelMaxLevel } from '../model-catalog';
-import { normalizeCodexEffortForModel } from '../ai-providers/codex-reasoning-proxy';
+import {
+  injectCodexRequestTuningIntoBody,
+  normalizeCodexEffortForModel,
+} from '../ai-providers/codex-reasoning-proxy';
 
 import { createLogger } from '../../services/logging';
 import {
@@ -36,6 +39,7 @@ import {
   resolveUpstreamTimeoutMs,
   writeForwardResponseHead,
 } from './upstream-response-timeout';
+import { hasEncodedBody, setUpstreamAcceptEncoding } from './content-encoding';
 
 export interface ToolSanitizationProxyConfig {
   /** Upstream CLIProxy URL */
@@ -73,8 +77,8 @@ const GEMINI_UNSUPPORTED_TOOL_FIELDS = new Set([
 ]);
 
 const CODEX_UNSUPPORTED_TOOL_FIELDS = new Set(['cache_control']);
-const CODEX_FAST_SERVICE_TIER = 'priority';
 const EXTENDED_CONTEXT_SUFFIX_REGEX = /\[1m\]$/i;
+const THINKING_SUFFIX_REGEX = /\([^()]*\)$/;
 const LEGACY_CODEX_MODEL_ID_REGEX = /^gpt-5(?:\.\d+)?-codex(?:-(?:mini|max))?$/i;
 
 function canonicalizeCodexModelId(model: string | undefined): string | null {
@@ -84,7 +88,8 @@ function canonicalizeCodexModelId(model: string | undefined): string | null {
   }
 
   const withoutExtendedContext = normalizedModel.replace(EXTENDED_CONTEXT_SUFFIX_REGEX, '').trim();
-  return stripCodexEffortSuffix(withoutExtendedContext);
+  const withoutThinkingSuffix = withoutExtendedContext.replace(THINKING_SUFFIX_REGEX, '').trim();
+  return stripCodexEffortSuffix(withoutThinkingSuffix);
 }
 
 function isKnownCodexModelId(model: string | undefined): boolean {
@@ -118,22 +123,13 @@ function applyCodexModelTuningAlias(body: Record<string, unknown>): Record<strin
     return body;
   }
 
-  const tunedBody: Record<string, unknown> = { ...body, model: parsed.baseModel };
-
-  if (parsed.effort) {
-    const normalizedEffort = normalizeCodexEffortForModel(parsed.baseModel, parsed.effort);
-    const existingReasoning = isRecord(body.reasoning) ? body.reasoning : {};
-    tunedBody.reasoning = {
-      ...existingReasoning,
-      effort: normalizedEffort,
-    };
-  }
-
-  if (parsed.serviceTier) {
-    tunedBody.service_tier = CODEX_FAST_SERVICE_TIER;
-  }
-
-  return tunedBody;
+  return injectCodexRequestTuningIntoBody(
+    { ...body, model: parsed.baseModel },
+    {
+      effort: parsed.effort ? normalizeCodexEffortForModel(parsed.baseModel, parsed.effort) : null,
+      serviceTier: parsed.serviceTier,
+    }
+  ) as Record<string, unknown>;
 }
 
 function getUnsupportedToolFields(
@@ -488,6 +484,7 @@ export class ToolSanitizationProxy {
       if (hopByHop.has(lower)) continue;
       headers[key] = value;
     }
+    setUpstreamAcceptEncoding(headers);
 
     if (bodyString !== undefined) {
       headers['Content-Type'] = headers['Content-Type'] || 'application/json';
@@ -629,7 +626,19 @@ export class ToolSanitizationProxy {
           upstreamRes.on('end', () => {
             clearUpstreamResponseTimeout();
             try {
-              const responseBody = Buffer.concat(chunks).toString('utf8');
+              const rawBody = Buffer.concat(chunks);
+              if (hasEncodedBody(upstreamRes.headers)) {
+                this.warnEncodedPassthrough(upstreamRes.headers);
+                const headers = { ...upstreamRes.headers };
+                delete headers['transfer-encoding'];
+                headers['content-length'] = String(rawBody.length);
+                clientRes.writeHead(upstreamRes.statusCode || 200, headers);
+                clientRes.end(rawBody);
+                resolve();
+                return;
+              }
+
+              const responseBody = rawBody.toString('utf8');
               const contentType = upstreamRes.headers['content-type'] || '';
 
               // Only process JSON responses with tool_use blocks
@@ -715,6 +724,29 @@ export class ToolSanitizationProxy {
             onTimeout: () => resolve(),
           });
           writeForwardResponseHead(clientRes, upstreamRes.statusCode || 200, upstreamRes.headers);
+
+          // A compressed body can't be scanned or rewritten: forward it untouched,
+          // without tool-name restoration or the empty-response safety net.
+          if (hasEncodedBody(upstreamRes.headers)) {
+            this.warnEncodedPassthrough(upstreamRes.headers);
+            upstreamRes.on('data', (chunk: Buffer) => {
+              const canContinue = clientRes.write(chunk);
+              if (!canContinue) {
+                upstreamRes.pause();
+                clientRes.once('drain', () => upstreamRes.resume());
+              }
+            });
+            upstreamRes.on('end', () => {
+              clearUpstreamResponseTimeout();
+              clientRes.end();
+              resolve();
+            });
+            upstreamRes.on('error', (error) => {
+              clearUpstreamResponseTimeout();
+              reject(error);
+            });
+            return;
+          }
 
           // Track upstream SSE lifecycle events (guards against empty proxy responses)
           const lifecycle = {
@@ -848,6 +880,14 @@ export class ToolSanitizationProxy {
       upstreamReq.write(bodyString);
       upstreamReq.end();
     });
+  }
+
+  private warnEncodedPassthrough(headers: http.IncomingHttpHeaders): void {
+    this.logger.warn(
+      'tool-sanitization.proxy.encoded-passthrough',
+      'Upstream compressed the response despite Accept-Encoding: identity. Passing it through without tool-name restoration or the empty-response safety net.',
+      { contentEncoding: headers['content-encoding'] }
+    );
   }
 
   /**
