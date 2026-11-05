@@ -24,6 +24,40 @@ function writeAuthFile(authDir: string, fileName: string, content: Record<string
 }
 
 describe('reapplyDrainOrderForProvider after registry sync', () => {
+  it('leaves quota priorities to the journaled reconciler during registry sync', async () => {
+    const tempHome = fs.mkdtempSync(path.join(os.tmpdir(), 'ccs-quota-reapply-'));
+    try {
+      await runWithScopedCcsHome(tempHome, async () => {
+        const authDir = path.join(tempHome, '.ccs', 'cliproxy', 'auth');
+        fs.mkdirSync(authDir, { recursive: true, mode: 0o700 });
+        writeAuthFile(authDir, 'claude-test.json', { type: 'claude', priority: 7 });
+        saveDrainOrderConfig('claude', { mode: 'quota' });
+        const before = fs.readFileSync(path.join(authDir, 'claude-test.json'), 'utf8');
+        const accounts = [{ accountId: 'test', tokenFile: 'claude-test.json' }];
+        for (const running of [false, true]) {
+          expect(await reapplyDrainOrderForProvider('claude', accounts, running)).toBeUndefined();
+          expect(
+            await reapplyAllManagedDrainOrders(
+              {
+                providers: {
+                  claude: {
+                    accounts: {
+                      test: { tokenFile: 'claude-test.json' },
+                    },
+                  },
+                },
+              },
+              running
+            )
+          ).toEqual({});
+        }
+        expect(fs.readFileSync(path.join(authDir, 'claude-test.json'), 'utf8')).toBe(before);
+      });
+    } finally {
+      fs.rmSync(tempHome, { recursive: true, force: true });
+    }
+  });
+
   it('automatically restores effective priorities after token file re-write without watcher reload loop', async () => {
     const tempHome = fs.mkdtempSync(path.join(os.tmpdir(), 'ccs-drain-order-reapply-'));
     try {

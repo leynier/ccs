@@ -767,7 +767,9 @@ export async function reapplyDrainOrderForProvider(
   proxyRunning: boolean
 ): Promise<ApplyDrainOrderResult | undefined> {
   const drainCfg = loadDrainOrderConfig(provider);
-  if (!drainCfg) {
+  // Quota priorities belong to the journaled CAS reconciler, including external-edit detection.
+  // Registry discovery must not bypass that owner with direct writes or legacy API patches.
+  if (!drainCfg || drainCfg.mode === 'quota') {
     return undefined;
   }
 

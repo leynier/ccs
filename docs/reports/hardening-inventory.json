@@ -1,7 +1,7 @@
 {
   "scope": "src/**/*.{ts,tsx,js,jsx,mjs,cjs}",
   "syncFs": {
-    "totalOccurrences": 2693,
+    "totalOccurrences": 2698,
     "filesAffected": 284,
     "hotpathOccurrences": 1222,
     "hotpathFilesAffected": 164,
@@ -304,8 +304,8 @@
     ]
   },
   "legacyShim": {
-    "totalMarkers": 495,
-    "filesAffected": 186,
+    "totalMarkers": 496,
+    "filesAffected": 187,
     "topFiles": [
       {
         "file": "src/auth/profile-detector.ts",
