@@ -1,10 +1,10 @@
 {
   "scope": "src/**/*.{ts,tsx,js,jsx,mjs,cjs}",
   "syncFs": {
-    "totalOccurrences": 2698,
-    "filesAffected": 284,
-    "hotpathOccurrences": 1222,
-    "hotpathFilesAffected": 164,
+    "totalOccurrences": 2705,
+    "filesAffected": 285,
+    "hotpathOccurrences": 1223,
+    "hotpathFilesAffected": 165,
     "topHotpathFiles": [
       {
         "file": "src/utils/browser/mcp-installer.ts",
@@ -231,7 +231,7 @@
       },
       {
         "file": "src/cliproxy/binary/__tests__/binary-installer-atomic.test.ts",
-        "count": 41,
+        "count": 47,
         "calls": [
           "existsSync",
           "mkdirSync",
@@ -582,8 +582,8 @@
     },
     "loggerCoverage": {
       "filesWithCreateLogger": 68,
-      "totalSourceFiles": 781,
-      "coverageRatio": 0.0871,
+      "totalSourceFiles": 782,
+      "coverageRatio": 0.087,
       "subdomainsWithZeroCreateLogger": [
         "api",
         "bin",
@@ -613,7 +613,7 @@
         },
         {
           "subdomain": "utils",
-          "count": 92,
+          "count": 93,
           "withLogger": 2
         },
         {
